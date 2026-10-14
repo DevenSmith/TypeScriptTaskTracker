@@ -144,7 +144,7 @@ async function runApp(): Promise<void> {
 
   while (running) {
     const command = await readline.question(
-      "\nChoose a command (list, add, complete, delete, quit): ",
+      "\nChoose a command (list, add, complete, update, delete, quit): ",
     );
 
     switch (command.trim().toLowerCase()) {
@@ -164,6 +164,45 @@ async function runApp(): Promise<void> {
         if (completed) {
           await saveTasks();
           console.log(`Completed task ${id}.`);
+        } else {
+          console.log(`Task ${id} was not found.`);
+        }
+
+        break;
+      }
+
+      case "update": {
+        const input = await readline.question("Enter the task ID: ");
+        const id = Number(input);
+
+        const title = await readline.question(
+          "Enter a new title, or press Enter to keep the current title: ",
+        );
+
+        const priority = await readline.question(
+          "Enter a new priority, or press Enter to keep the current priority: ",
+        );
+
+        if (priority !== "" && !isPriority(priority)) {
+          console.log("Invalid priority.");
+          break;
+        }
+
+        const updates: TaskUpdates = {};
+
+        if (title.trim() !== "") {
+          updates.title = title.trim();
+        }
+
+        if (priority !== "") {
+          updates.priority = priority;
+        }
+
+        const updatedTask = updateTask(id, updates);
+
+        if (updatedTask) {
+          await saveTasks();
+          console.log("Updated task:", updatedTask);
         } else {
           console.log(`Task ${id} was not found.`);
         }
