@@ -9,8 +9,18 @@ interface Task {
     priority: Priority;
 }
 
-function addTask(task: Task): void {
+type NewTask = Omit<Task, "id" | "completed">;
+
+function addTask(input: NewTask): Task {
+  const task: Task = {
+    id: tasks.length + 1,
+    title: input.title,
+    completed: false,
+    priority: input.priority,
+  };
+
   tasks.push(task);
+  return task;
 }
 
 function findTaskById(id: number): Task | undefined {
@@ -53,12 +63,12 @@ const firstTask: Task = {
 
 const tasks: Task[] = [firstTask];
 
-addTask({
-  id: 2,
+const addedTask = addTask({
   title: "Practice TypeScript functions",
-  completed: false,
   priority: "medium",
 });
+
+console.log("Added task:", addedTask);
 
 const mediumPriorityTasks = getTasksByPriority("medium");
 console.log("Medium-priority tasks:", mediumPriorityTasks);
