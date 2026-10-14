@@ -94,14 +94,25 @@ function isPriority(value: string): value is Priority {
   return value === "low" || value === "medium" || value === "high";
 }
 
-async function promptForNewTask(): Promise<void> {
-  await loadTasks();
+function listTasks(): void {
+  if (tasks.length === 0) {
+    console.log("No tasks found.");
+    return;
+  }
 
-  const readline = createInterface({
-    input: stdin,
-    output: stdout,
-  });
+  console.log("\nTasks:");
 
+  for (const task of tasks) {
+    const marker = task.completed ? "x" : " ";
+    console.log(
+      `${task.id}. [${marker}] ${task.title} (${task.priority})`,
+    );
+  }
+}
+
+async function promptForNewTask(
+  readline: ReturnType<typeof createInterface>,
+): Promise<void> {
   const title = await readline.question("Enter a new task title: ");
   const priority = await readline.question(
     "Enter a priority (low, medium, or high): ",
@@ -109,7 +120,6 @@ async function promptForNewTask(): Promise<void> {
 
   if (!isPriority(priority)) {
     console.log("Invalid priority.");
-    readline.close();
     return;
   }
 
@@ -119,9 +129,73 @@ async function promptForNewTask(): Promise<void> {
   });
 
   await saveTasks();
-
   console.log("Created task:", task);
+}
+
+async function runApp(): Promise<void> {
+  const readline = createInterface({
+    input: stdin,
+    output: stdout,
+  });
+
+  await loadTasks();
+
+  let running = true;
+
+  while (running) {
+    const command = await readline.question(
+      "\nChoose a command (list, add, complete, delete, quit): ",
+    );
+
+    switch (command.trim().toLowerCase()) {
+      case "list":
+        listTasks();
+        break;
+
+      case "add":
+        await promptForNewTask(readline);
+        break;
+
+      case "complete": {
+        const input = await readline.question("Enter the task ID: ");
+        const id = Number(input);
+        const completed = completeTask(id);
+
+        if (completed) {
+          await saveTasks();
+          console.log(`Completed task ${id}.`);
+        } else {
+          console.log(`Task ${id} was not found.`);
+        }
+
+        break;
+      }
+
+      case "delete": {
+        const input = await readline.question("Enter the task ID: ");
+        const id = Number(input);
+        const deleted = deleteTask(id);
+
+        if (deleted) {
+          await saveTasks();
+          console.log(`Deleted task ${id}.`);
+        } else {
+          console.log(`Task ${id} was not found.`);
+        }
+
+        break;
+      }
+
+      case "quit":
+        running = false;
+        break;
+
+      default:
+        console.log("Unknown command.");
+    }
+  }
+
   readline.close();
 }
 
-void promptForNewTask();
+void runApp();

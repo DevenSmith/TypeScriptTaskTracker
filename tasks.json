@@ -6,21 +6,9 @@
     "priority": "high"
   },
   {
-    "id": 3,
-    "title": "titties",
-    "completed": false,
-    "priority": "high"
-  },
-  {
-    "id": 4,
-    "title": "Ass",
-    "completed": false,
-    "priority": "low"
-  },
-  {
     "id": 5,
     "title": "test",
-    "completed": false,
+    "completed": true,
     "priority": "low"
   }
 ]
