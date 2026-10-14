@@ -1,9 +1,12 @@
 const projectName: string = "TypeScript Task Tracker";
 
+type Priority = "low" | "medium" | "high";
+
 interface Task {
     id: number;
     title: string;
     completed: boolean;
+    priority: Priority;
 }
 
 function addTask(task: Task): void {
@@ -37,11 +40,16 @@ function deleteTask(id: number): boolean {
   return true;
 }
 
-const firstTask: Task = {
-    id: 1,
-    title: "Learn Typescript Basics",
-    completed: false,
+function getTasksByPriority(priority: Priority): Task[] {
+  return tasks.filter((task) => task.priority === priority);
 }
+
+const firstTask: Task = {
+  id: 1,
+  title: "Learn Typescript Basics",
+  completed: false,
+  priority: "high",
+};
 
 const tasks: Task[] = [firstTask];
 
@@ -49,7 +57,11 @@ addTask({
   id: 2,
   title: "Practice TypeScript functions",
   completed: false,
+  priority: "medium",
 });
+
+const mediumPriorityTasks = getTasksByPriority("medium");
+console.log("Medium-priority tasks:", mediumPriorityTasks);
 
 const wasCompleted = completeTask(2);
 console.log("Task completed:", wasCompleted);
