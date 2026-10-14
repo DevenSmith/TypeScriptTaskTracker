@@ -10,6 +10,7 @@ interface Task {
 }
 
 type NewTask = Omit<Task, "id" | "completed">;
+type TaskUpdates = Partial<Pick<Task, "title" | "priority">>;
 
 function addTask(input: NewTask): Task {
   const task: Task = {
@@ -37,6 +38,17 @@ function completeTask(id: number): boolean {
   task.completed = true;
 
   return true;
+}
+
+function updateTask(id: number, updates: TaskUpdates): Task | undefined {
+  const task = findTaskById(id);
+
+  if (!task) {
+    return undefined;
+  }
+
+  Object.assign(task, updates);
+  return task;
 }
 
 function deleteTask(id: number): boolean {
@@ -79,6 +91,12 @@ console.log("Task completed:", wasCompleted);
 const wasDeleted = deleteTask(1);
 console.log("Task deleted:", wasDeleted);
 
+const updatedTask = updateTask(2, {
+  title: "Practice typed functions",
+  priority: "high",
+});
+
+console.log("Updated task:", updatedTask);
 console.log(`Welcome to the ${projectName}!`);
 console.log(tasks);
 
