@@ -2,6 +2,7 @@ const projectName: string = "TypeScript Task Tracker";
 
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
+import { readFile, writeFile } from "node:fs/promises";
 
 import type {
   NewTask,
@@ -13,7 +14,7 @@ import type {
 
 function addTask(input: NewTask): Task {
   const task: Task = {
-    id: tasks.length + 1,
+    id: Math.max(0, ...tasks.map((task) => task.id)) + 1,
     title: input.title,
     completed: false,
     priority: input.priority,
@@ -61,6 +62,30 @@ function deleteTask(id: number): boolean {
   return true;
 }
 
+async function saveTasks(): Promise<void> {
+  const json = JSON.stringify(tasks, null, 2);
+  await writeFile("tasks.json", json, "utf8");
+}
+
+async function loadTasks(): Promise<void> {
+  try {
+    const json = await readFile("tasks.json", "utf8");
+    const savedTasks = JSON.parse(json) as Task[];
+
+    tasks.splice(0, tasks.length, ...savedTasks);
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      return;
+    }
+
+    throw error;
+  }
+}
+
 function getTasksByPriority(priority: Priority): Task[] {
   return tasks.filter((task) => task.priority === priority);
 }
@@ -106,16 +131,38 @@ if (foundTask) {
   console.log("Task not found.");
 }
 
-async function promptForTaskTitle(): Promise<void> {
+function isPriority(value: string): value is Priority {
+  return value === "low" || value === "medium" || value === "high";
+}
+
+async function promptForNewTask(): Promise<void> {
+  await loadTasks();
+
   const readline = createInterface({
     input: stdin,
     output: stdout,
   });
 
   const title = await readline.question("Enter a new task title: ");
-  console.log("You entered:", title);
+  const priority = await readline.question(
+    "Enter a priority (low, medium, or high): ",
+  );
 
+  if (!isPriority(priority)) {
+    console.log("Invalid priority.");
+    readline.close();
+    return;
+  }
+
+  const task = addTask({
+    title,
+    priority,
+  });
+
+  await saveTasks();
+
+  console.log("Created task:", task);
   readline.close();
 }
 
-void promptForTaskTitle();
+void promptForNewTask();
