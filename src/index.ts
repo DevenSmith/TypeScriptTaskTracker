@@ -1,5 +1,3 @@
-const projectName: string = "TypeScript Task Tracker";
-
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { readFile, writeFile } from "node:fs/promises";
@@ -90,46 +88,7 @@ function getTasksByPriority(priority: Priority): Task[] {
   return tasks.filter((task) => task.priority === priority);
 }
 
-const firstTask: Task = {
-  id: 1,
-  title: "Learn Typescript Basics",
-  completed: false,
-  priority: "high",
-};
-
-const tasks: Task[] = [firstTask];
-
-const addedTask = addTask({
-  title: "Practice TypeScript functions",
-  priority: "medium",
-});
-
-console.log("Added task:", addedTask);
-
-const mediumPriorityTasks = getTasksByPriority("medium");
-console.log("Medium-priority tasks:", mediumPriorityTasks);
-
-const wasCompleted = completeTask(2);
-console.log("Task completed:", wasCompleted);
-
-const wasDeleted = deleteTask(1);
-console.log("Task deleted:", wasDeleted);
-
-const updatedTask = updateTask(2, {
-  title: "Practice typed functions",
-  priority: "high",
-});
-
-console.log("Updated task:", updatedTask);
-console.log(`Welcome to the ${projectName}!`);
-console.log(tasks);
-
-const foundTask = findTaskById(2);
-if (foundTask) {
-  console.log("Found task title:", foundTask.title);
-} else {
-  console.log("Task not found.");
-}
+const tasks: Task[] = [];
 
 function isPriority(value: string): value is Priority {
   return value === "low" || value === "medium" || value === "high";
