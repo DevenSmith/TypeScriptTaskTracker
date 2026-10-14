@@ -1,16 +1,15 @@
 const projectName: string = "TypeScript Task Tracker";
 
-type Priority = "low" | "medium" | "high";
+import { createInterface } from "node:readline/promises";
+import { stdin, stdout } from "node:process";
 
-interface Task {
-    id: number;
-    title: string;
-    completed: boolean;
-    priority: Priority;
-}
+import type {
+  NewTask,
+  Priority,
+  Task,
+  TaskUpdates,
+} from "./types.js";
 
-type NewTask = Omit<Task, "id" | "completed">;
-type TaskUpdates = Partial<Pick<Task, "title" | "priority">>;
 
 function addTask(input: NewTask): Task {
   const task: Task = {
@@ -106,3 +105,17 @@ if (foundTask) {
 } else {
   console.log("Task not found.");
 }
+
+async function promptForTaskTitle(): Promise<void> {
+  const readline = createInterface({
+    input: stdin,
+    output: stdout,
+  });
+
+  const title = await readline.question("Enter a new task title: ");
+  console.log("You entered:", title);
+
+  readline.close();
+}
+
+void promptForTaskTitle();
