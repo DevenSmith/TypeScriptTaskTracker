@@ -68,9 +68,13 @@ async function saveTasks(): Promise<void> {
 async function loadTasks(): Promise<void> {
   try {
     const json = await readFile("tasks.json", "utf8");
-    const savedTasks = JSON.parse(json) as Task[];
+    const savedData: unknown = JSON.parse(json);
 
-    tasks.splice(0, tasks.length, ...savedTasks);
+    if (!Array.isArray(savedData) || !savedData.every(isTask)) {
+      throw new Error("The tasks file contains invalid data.");
+    }
+
+    tasks.splice(0, tasks.length, ...savedData);
   } catch (error: unknown) {
     if (
       error instanceof Error &&
@@ -82,6 +86,24 @@ async function loadTasks(): Promise<void> {
 
     throw error;
   }
+}
+
+function isTask(value: unknown): value is Task {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  return (
+    "id" in value &&
+    typeof value.id === "number" &&
+    "title" in value &&
+    typeof value.title === "string" &&
+    "completed" in value &&
+    typeof value.completed === "boolean" &&
+    "priority" in value &&
+    typeof value.priority === "string" &&
+    isPriority(value.priority)
+  );
 }
 
 function getTasksByPriority(priority: Priority): Task[] {
@@ -108,6 +130,16 @@ function listTasks(): void {
       `${task.id}. [${marker}] ${task.title} (${task.priority})`,
     );
   }
+}
+
+function parseTaskId(input: string): number | undefined {
+  const id = Number(input);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return undefined;
+  }
+
+  return id;
 }
 
 async function promptForNewTask(
@@ -158,7 +190,13 @@ async function runApp(): Promise<void> {
 
       case "complete": {
         const input = await readline.question("Enter the task ID: ");
-        const id = Number(input);
+        const id = parseTaskId(input);
+
+        if (id === undefined) {
+          console.log("Please enter a valid positive task ID.");
+          break;
+        }
+
         const completed = completeTask(id);
 
         if (completed) {
@@ -173,7 +211,19 @@ async function runApp(): Promise<void> {
 
       case "update": {
         const input = await readline.question("Enter the task ID: ");
-        const id = Number(input);
+        const id = parseTaskId(input);
+
+        if (id === undefined) {
+          console.log("Please enter a valid positive task ID.");
+          break;
+        }
+
+        const existingTask = findTaskById(id);
+
+        if (!existingTask) {
+          console.log(`Task ${id} was not found.`);
+          break;
+        }
 
         const title = await readline.question(
           "Enter a new title, or press Enter to keep the current title: ",
@@ -212,7 +262,12 @@ async function runApp(): Promise<void> {
 
       case "delete": {
         const input = await readline.question("Enter the task ID: ");
-        const id = Number(input);
+        const id = parseTaskId(input);
+
+        if (id === undefined) {
+          console.log("Please enter a valid positive task ID.");
+          break;
+        }
         const deleted = deleteTask(id);
 
         if (deleted) {
