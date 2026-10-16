@@ -9,6 +9,12 @@ import type {
   TaskUpdates,
 } from "./types.js";
 
+import {
+  isPriority,
+  isTask,
+  parseTaskId,
+} from "./validation.js";
+
 
 function addTask(input: NewTask): Task {
   const task: Task = {
@@ -88,33 +94,11 @@ async function loadTasks(): Promise<void> {
   }
 }
 
-function isTask(value: unknown): value is Task {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  return (
-    "id" in value &&
-    typeof value.id === "number" &&
-    "title" in value &&
-    typeof value.title === "string" &&
-    "completed" in value &&
-    typeof value.completed === "boolean" &&
-    "priority" in value &&
-    typeof value.priority === "string" &&
-    isPriority(value.priority)
-  );
-}
-
 function getTasksByPriority(priority: Priority): Task[] {
   return tasks.filter((task) => task.priority === priority);
 }
 
 const tasks: Task[] = [];
-
-function isPriority(value: string): value is Priority {
-  return value === "low" || value === "medium" || value === "high";
-}
 
 function listTasks(): void {
   if (tasks.length === 0) {
@@ -130,16 +114,6 @@ function listTasks(): void {
       `${task.id}. [${marker}] ${task.title} (${task.priority})`,
     );
   }
-}
-
-function parseTaskId(input: string): number | undefined {
-  const id = Number(input);
-
-  if (!Number.isInteger(id) || id <= 0) {
-    return undefined;
-  }
-
-  return id;
 }
 
 async function promptForNewTask(
